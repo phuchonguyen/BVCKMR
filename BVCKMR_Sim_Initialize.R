@@ -1,9 +1,11 @@
 ##################################
 # Simulation initialization code #
 ##################################
-
-library(lars); library(lasso2); library(mvtnorm); library(SuppDists); library(MCMCpack); 
-library(grplasso); library(magic); library(kernlab); library(MASS); library(fields); library(stats)
+library(lars); 
+library(lasso2, lib.loc = "/tmp/Rtmp74DfH0");
+library(mvtnorm); library(SuppDists); library(MCMCpack); 
+library(grplasso); library(magic); library(kernlab); library(MASS); 
+library(fields); library(stats)
 
 # Set notation. 
 # T = number of follow-up time points

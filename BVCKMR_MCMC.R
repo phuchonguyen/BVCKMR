@@ -1,4 +1,6 @@
+pb <- txtProgressBar(style=3)
 for (iter in 1:num.reps)  {
+  setTxtProgressBar(pb, iter/num.reps)
 	# Sigma_h matrix
 	list.K			= list()
 	poly 			= polydot(degree=2, offset=1)
