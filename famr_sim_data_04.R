@@ -7,8 +7,8 @@ library(MASS); library(stats)
 #n 				= 100 # Number of subjects
 q 				= 2 # Random slope and random intercept
 p 				= 2 # Number of confounders
-M				  = 20 # Number of metals
-k         = 7 # Rank of covariance of metals
+M				  = 10 # Number of metals
+k         = 9 # Rank of covariance of metals
 # age 			= c(-5:5)
 T				  = 10 # Number of time points
 age       = 1:T
@@ -40,9 +40,8 @@ beta		= runif(p, 0.5, 1)
 
 b				= c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = matrix(data = c(0.25,0.005,0.005,0.05), nrow=q))))
 b_pred	= c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = matrix(data = c(0.25,0.005,0.005,0.05), nrow=q))))
-h1.coef = c(1, 0.8, 0.5, 0.6, 0.5)
-h2.coef = 0.5
-h.rank = c(20, 19, 18, 17, rep(16, M-4))
+h1.coef = runif(5, 0.5, 1) * sample(c(-1, 1), size = 5, replace = TRUE)
+h2.coef = runif(1, 0.25, 0.5)
 res.sd = 1
 
 # Make U matrix
@@ -65,12 +64,13 @@ Y = matrix(rnorm(n=N, mean=0, sd=res.sd)) +
   rep(cbind(Z[,1]^2, - Z[,2]^2, Z[,1]*Z[,2], Z[,3], Z[,4]) %*% h1.coef, each=T) + 
   matrix(rep(h2.coef*(Z[,1]^2 - Z[,2]^2), each=T)) * rep(age, n) +
   U %*% b
+
+# For validation
 trueh_pred = rep(cbind(Z_pred[,1]^2, - Z_pred[,2]^2, Z_pred[,2]*Z_pred[,3], Z_pred[,2], Z_pred[,3]) %*% h1.coef, each=T) + 
   matrix(rep(h2.coef*(Z_pred[,1]^2 - Z_pred[,2]^2), each=T)) * rep(age, n)
-
+Y_pred_oracle <- trueh_pred + X_pred %*% beta
 Y_pred = matrix(rnorm(n=N, mean=0, sd=res.sd)) + 
-  X_pred %*% beta + 
-  trueh_pred +
+  Y_pred_oracle +
   U %*% b_pred
 
 # Make W matrix

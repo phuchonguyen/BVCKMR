@@ -2,10 +2,10 @@
 # Simulation initialization code #
 ##################################
 library(lars); 
-library(lasso2, lib.loc = "/tmp/Rtmp74DfH0");
 library(mvtnorm); library(SuppDists); library(MCMCpack); 
 library(grplasso); library(magic); library(kernlab); library(MASS); 
 library(fields); library(stats)
+library(lasso2, lib.loc = .libPaths()[2]);
 
 # Set notation. 
 # T = number of follow-up time points
@@ -49,6 +49,7 @@ if (doginv) {
 mean.h 				    = rep(0, q*n)    			
 
 h  					      = mvrnorm(1, mu=mean.h, Sigma=Sigma.h)  
+b = c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = diag(1, q, q))))
     
 # FOR POSTERIOR
 sigsq.post 	= lambda1.post = NULL 

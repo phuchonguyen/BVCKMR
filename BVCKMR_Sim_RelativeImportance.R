@@ -21,9 +21,6 @@ for (j in 1:M) {
 		mat.sd[1,j] 	= sqrt(hgrid.cross.sec$postvar[3,3] + hgrid.cross.sec$postvar[4,4] - 2*hgrid.cross.sec$postvar[3,4])
 		mat.sd[2,j] 	= sqrt(hgrid.cross.sec$postvar[1,1] + hgrid.cross.sec$postvar[2,2] - 2*hgrid.cross.sec$postvar[1,2])
 	}
-	
-# Rank metals based on mean importance
-predh.rank = rank(abs(mat[1,]), ties.method = "max")
 
 # #Plot
 # ylim 		= c(-1, 1)
