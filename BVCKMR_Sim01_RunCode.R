@@ -75,7 +75,7 @@ if (doMCMC)
 	                  "fnorm_rank_importance" = norm(predh.rank-h.rank, type="F"),
 	                  "spearman_rank_importance" = cor(predh.rank, h.rank, method="spearman")
 	                  )
-	  save(res, file=paste0("sim-gp-output/scenario-001/res-", RANDOM_SEED, ".RData"))
+	  save(res, file=paste0("sim-bvckmr-output/scenario-001/res-", RANDOM_SEED, ".RData"))
 	  
 	  end_time <- Sys.time()
 	  cat('\n Model took: ', end_time - start_time)

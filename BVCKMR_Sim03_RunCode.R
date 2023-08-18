@@ -11,7 +11,7 @@
 
 source("BVCKMR_Sim_Pred.R")
 source("install_package_temporarily.R")
-RANDOM_SEED = as.integer(Sys.getenv('SLURM_ARRAY_TASK_ID'))
+RANDOM_SEED = 1 #as.integer(Sys.getenv('SLURM_ARRAY_TASK_ID'))
 set.seed(RANDOM_SEED)
 
 # Set tasks
@@ -22,8 +22,8 @@ cofactor		= 1e-5	# randomly generated kernel matrix is not always invertible.
 
 if (doMCMC)
 {
-	n			    = 100
-	Q         = 5 # Number of outcomes
+	n			    = 100 # TODO 200
+	Q         = 2 # Number of outcomes
 	res = list()
 	models = list()
 	for (i in 1:Q) {

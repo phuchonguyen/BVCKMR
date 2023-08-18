@@ -52,7 +52,7 @@ if (i == 1) {
 beta		= runif(p, 0.5, 1)
 b				= c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = matrix(data = c(0.25,0.005,0.005,0.05), nrow=q))))
 b_pred	= c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = matrix(data = c(0.25,0.005,0.005,0.05), nrow=q))))
-h1.coef = runif(3, 0.5, 1) * sample(c(-1, 1), size = 5, replace = TRUE)
+h1.coef = runif(3, 0.5, 1) * sample(c(-1, 1), size = 3, replace = TRUE)
 h2.coef = runif(2, 0.25, 0.5)
 res.sd = 1
 

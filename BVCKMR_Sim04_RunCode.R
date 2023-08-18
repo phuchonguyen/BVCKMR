@@ -15,11 +15,11 @@ cofactor		= 1e-5	# randomly generated kernel matrix is not always invertible.
 
 if (doMCMC)
 {
-	n			    = 100
-	N         = 5 # Number of outcomes
+	n			    = 200
+	Q         = 5 # Number of outcomes
 	res = list()
 	models = list()
-	for (i in 1:N) {
+	for (i in 1:Q) {
 	  start_time <- Sys.time()
 	  # source("BVCKMR_Sim_Data.R")
 	  source("famr_sim_data_04.R")
@@ -30,7 +30,9 @@ if (doMCMC)
 	  source("BVCKMR_MCMC.R")
 	  #cat(c("Job finished at:",date()),fill=TRUE)
 	  MCMC = list(Sigsq = sigsq.post, Lam1 = lambda1.post, H = h.post, Tau = tausq.post, Beta = beta.post, DINV = D.inv.post, b = b.post, Z = Z, Y = Y, X = X, U = U, W = W, sel = sel, cofactor = cofactor, q = q, M = M, n = n)  
-	  models[[i]] = MCMC
+	  # models[[i]] = MCMC
+	  # matplot(MCMC$H[sel,sample(1:(2*n), 30)], type='l')
+	  matplot(MCMC$Beta[sel,], type='l')
 	  # save(models, file=paste0("sim-gp-output/scenario-004/MCMC-", RANDOM_SEED, ".RData"))
 	  
 	  # Analysis
@@ -55,7 +57,10 @@ if (doMCMC)
 	  # Get predictive MSE
 	  # model.1 = lm(hpred.h1~true.h1)
 	  # model.2 = lm(hpred.h2~true.h2)
-	  model.h = lm(hpred ~ trueh_pred)
+	  # model.h = lm(hpred ~ trueh_pred)
+	  # list("lm_intercept" = summary(model.h)$coef[1,1], 
+	  # "lm_slope" = summary(model.h)$coef[2,1], 
+	  # "lm_r2" = summary(model.h)$r.sq)
 	  
 	  # Summary.h = list(summary(model.1)$coef[1,1], 
 	  #                   summary(model.1)$coef[2,1], 
@@ -69,8 +74,8 @@ if (doMCMC)
 	    cross.sec 		= rbind(apply(Z, 2, median), apply(Z, 2, median))
 	    cross.sec[,j] 	= c(quantile(Z[,j], qs[2]), quantile(Z[,j], qs[1]))
 	    h1.tmp = cbind(cross.sec[,1]^2, - cross.sec[,2]^2, 
-	                   cross.sec[,1]*cross.sec[,2], 
-	                   cross.sec[,3], cross.sec[,4]) %*% h1.coef
+	                   0.5*cross.sec[,1]*cross.sec[,2], 
+	                   cross.sec[,7], cross.sec[,8]) %*% h1.coef
 	    h2.tmp = h2.coef*(cross.sec[,1]^2 - cross.sec[,2]^2)
 	    true.mat[1, j] = h1.tmp[1] - h1.tmp[2]
 	    true.mat[2, j] = h2.tmp[1] - h2.tmp[2]
@@ -82,13 +87,10 @@ if (doMCMC)
 	  res[[i]] = list("pmse" = sum( (ypred - Y_pred)^2) / (n*T),
 	                  "pmse_mean" = sum((mean(Y) - Y_pred)^2) / (n*T),
 	                  "pmse_true" = sum( (Y_pred_oracle - Y_pred)^2) / (n*T),
-	                  "lm_intercept" = summary(model.h)$coef[1,1], 
-	                  "lm_slope" = summary(model.h)$coef[2,1], 
-	                  "lm_r2" = summary(model.h)$r.sq,
 	                  "fnorm_rank_importance" = norm(predh.rank-h.rank, type="F"),
 	                  "spearman_rank_importance" = cor(predh.rank, h.rank, method="spearman")
 	                  )
-	  save(res, file=paste0("sim-gp-output/scenario-004/res-", RANDOM_SEED, ".RData"))
+	  save(res, file=paste0("sim-bvckmr-output/scenario-004/res-", RANDOM_SEED, ".RData"))
 	  
 	  end_time <- Sys.time()
 	  cat('\n Model took: ', end_time - start_time)
