@@ -68,6 +68,7 @@ if (doMCMC)
 	  source("BVCKMR_Sim_RelativeImportance.R")
 	  qs = c(0.25, 0.75, 0.50)
 	  true.mat = rep(NA, M)
+	  pred.mat = rep(NA, M)
 	  for (j in 1:M) {
 	    # Get true.mat
 	    cross.sec 		= rbind(apply(Z, 2, median), apply(Z, 2, median))
@@ -75,11 +76,12 @@ if (doMCMC)
 	    h1.tmp = h1.func(cross.sec)
 	    # The rank of effect at all time points are the same since the change in time is linear
 	    h2.tmp = h2.func(cross.sec)
-	    true.mat[,j] = (h1.tmp[1] + h2.tmp[1]) - (h1.tmp[2] + h2.tmp[2])
+	    true.mat[j] = sum(abs((h1.tmp[1] - h1.tmp[2]) + (h2.tmp[1] - h2.tmp[2])*age))
+	    pred.mat[j] = sum(abs(mat[1,j] + mat[2,j]*age))
 	  }
 	  # Rank metals based on mean importance
-	  predh.rank = rank(abs(mat[1,] + mat[2,]), ties.method = "max")
-	  h.rank[i, ] = rank(abs(true.mat), ties.method = "max")
+	  predh.rank = rank(pred.mat, ties.method = "max")
+	  h.rank = rank(true.mat, ties.method = "max")
 	  
 	  res[[i]] = list("pmse" = sum( (ypred - Y_pred)^2) / (n*T),
 	                  "pmse_mean" = sum((mean(Y) - Y_pred)^2) / (n*T),
