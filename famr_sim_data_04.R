@@ -45,8 +45,13 @@ if (i == 1) {
 beta		= runif(p, 0.5, 1)
 b				= c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = matrix(data = c(0.25,0.005,0.005,0.05), nrow=q))))
 b_pred	= c( t(mvrnorm(n = n, mu=rep(0,q), Sigma = matrix(data = c(0.25,0.005,0.005,0.05), nrow=q))))
-h1.coef = runif(5, 0.5, 1.5) * sample(c(-1, 1), size = 5, replace = TRUE)
-h2.coef = runif(1, 0.25, 0.5)
+h1.coef = runif(5, 0.25, 0.5) * sample(c(-1, 1), size = 5, replace = TRUE)
+h2.coef = runif(3, 0.25, 0.5) * sample(c(-1, 1), size = 3, replace = TRUE)
+h1.func = function(Z) {cbind(Z[,1]^2, - Z[,2]^2,
+                             0.5*Z[,1]*Z[,2],
+                             Z[,7],
+                             Z[,8]) %*% h1.coef}
+h2.func = function(Z) {cbind(Z[,1]^2, Z[,7], Z[,8]) %*% h2.coef}
 res.sd = 1
 
 # Make U matrix
@@ -66,15 +71,13 @@ while(counter < n) {
 
 Y = matrix(rnorm(n=N, mean=0, sd=res.sd)) + 
   X %*% beta + 
-  rep(cbind(Z[,1]^2, - Z[,2]^2, 0.5*Z[,1]*Z[,2], Z[,7], Z[,8]) %*% h1.coef, each=T) + 
-  matrix(rep(h2.coef*(Z[,1]^2 - Z[,2]^2), each=T)) * rep(age, n) +
+  rep(h1.func(Z), each=T) + 
+  matrix(rep(h2.func(Z), each=T)) * rep(age, n) +
   U %*% b
 
 # For validation
-trueh_pred = rep(cbind(Z_pred[,1]^2, - Z_pred[,2]^2, 
-                       0.5*Z_pred[,1]*Z_pred[,2], 
-                       Z_pred[,7], Z_pred[,8]) %*% h1.coef, each=T) + 
-  matrix(rep(h2.coef*(Z_pred[,1]^2 - Z_pred[,2]^2), each=T)) * rep(age, n)
+trueh_pred = rep(h1.func(Z_pred), each=T) + 
+  matrix(rep( h2.func(Z_pred), each=T)) * rep(age, n)
 Y_pred_oracle <- trueh_pred + X_pred %*% beta
 Y_pred = matrix(rnorm(n=N, mean=0, sd=res.sd)) + 
   Y_pred_oracle +
