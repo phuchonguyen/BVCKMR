@@ -24,57 +24,61 @@ id <- rep(1:n, each=T) # NOTICE: the order is changed compared to input to the o
 time <- rep(1:T, n)  # NOTICE: the order is changed compared to input to the other models
 ## noise variance for mixtures
 sigma_x <- rep(0.5, M) #runif(M, 0.2, 0.5)
-## sample effective latent factors
-eta <- matrix(rnorm(n * k), n, k)
-eta_pred <- matrix(rnorm(n * k), n, k)
-## define a loading matrix for the effective factors
-Theta <- matrix(rnorm(M * k, 0, 0.1), M, k)
-for (kk in 0:1) {
-  Theta[kk * (M / 2) + (1:(M / 2)), (kk + 1)] <- runif(M / 2, 1.2, 2.2)
+
+# Only sample predictors once
+if (i == 1) {
+  ## sample effective latent factors
+  eta <- matrix(rnorm(n * k), n, k)
+  eta_pred <- matrix(rnorm(n * k), n, k)
+  ## define a loading matrix for the effective factors
+  Theta <- matrix(0, p, k)
+  for (kk in 0:1) {
+    Theta[kk * (p / 2) + (1:(p / 2)), (kk + 1)] <- rnorm(p/2, 0, 1)
+  }
+  ## generate mixture n x M
+  Z <-
+    eta %*% t(Theta) + MASS::mvrnorm(n, mu = rep(0, M), Sigma = diag(sigma_x))
+  Z_pred <-
+    eta_pred %*% t(Theta) + MASS::mvrnorm(n, mu = rep(0, M), Sigma = diag(sigma_x))
+  Z <- apply(Z, 2, scale)
+  Z_pred <- apply(Z_pred, 2, scale)
+  ## generate covariates n x p
+  X <- cbind(rbinom(N, 1, prob = 0.6), rnorm(N))
+  X_pred <- cbind(rbinom(N, 1, prob = 0.6), rnorm(N))
+  ## generate linear regression coefs
+  B <- matrix(runif(q * k, 0, 3.5) * sample(c(-1, 1), q * k, replace = TRUE), q, k)
+  B_t <- matrix(runif(q * k, 0, 1.6) * sample(c(-1, 1), q * k, replace = TRUE), q, k)
+  ## convert factors' effects to effects in Z
+  Ax <-
+    solve(t(Theta) %*% diag(1 / sigma_x ^ 2) %*% Theta + diag(1, k, k))
+  Ax <- Ax %*% t(Theta) %*% diag(1 / sigma_x ^ 2)
+  Bx <- B %*% Ax
+  Bx_t <- B_t %*% Ax
+  ## effects of covariates
+  B_z <- matrix(runif(q * p_covariates, 0.3, 0.5), q, p_covariates)
+  ## generate random intercept
+  xi_sigma <- 1
+  ## generate observation error
+  E_sigma <- 0.5
 }
-# for (kk in 0:1) {
-#   Theta[kk*(M/2) + (1:5), (kk+3)] <- runif(5, 0.2, 0.5)
-# }
-## generate mixture n x M
-Z <-
-  eta %*% t(Theta) + MASS::mvrnorm(n, mu = rep(0, M), Sigma = diag(sigma_x))
-Z_pred <-
-  eta_pred %*% t(Theta) + MASS::mvrnorm(n, mu = rep(0, M), Sigma = diag(sigma_x))
-## generate covariates n x p
-X <- cbind(rbinom(n * T, 1, prob = 0.6), rnorm(n * T))
-X_pred <- cbind(rbinom(n * T, 1, prob = 0.6), rnorm(n * T))
-## generate linear regression coefs
-B <- matrix(0, Q, k)
-B[, 1:2] <- runif(Q * 2, 2, 4) * sample(c(-1, 1), Q * 2, replace = TRUE)
-B_t <- matrix(0, Q, k)
-B_t[, 1:2] <- runif(Q, 0, 2) * sample(c(-1, 1), Q * 2, replace = TRUE)
-## convert factors' effects to effects in Z
-Ax <-
-  solve(t(Theta) %*% diag(1 / sigma_x ^ 2) %*% Theta + diag(1, k, k))
-Ax <- Ax %*% t(Theta) %*% diag(1 / sigma_x ^ 2)
-Bx <- B %*% Ax
-Bx_t <- B_t %*% Ax
-## effects of covariates
-B_z <- matrix(runif(Q * p, 0.1, 0.2), Q, p)
-## generate random intercept
-xi <- MASS::mvrnorm(n, rep(0, Q), diag(1, Q, Q))
-## generate observation error
-E <- MASS::mvrnorm(n * T, rep(0, Q), diag(0.5, Q, Q))
+
 ## generate outcomes
-Y <- eta[id, ] %*% t(B) +
-  (eta[id, ] * tcrossprod(scale(time), rep(1, k))) %*% t(B_t) +
-  X[id, ] %*% t(B_z) + xi[id,] + E
+Y <- eta[id, ] %*% B[i,] +
+  (eta[id, ] * tcrossprod(scale(time), rep(1, k))) %*% B_t[i,] +
+  X[id, ] %*% B_z[i,] + 
+  rnorm(n, 0, sqrt(xi_sigma))[id] +
+  rnorm(N, 0, sqrt(E_sigma))
 
 ## for evaluation
-trueh_pred <- eta_pred[id, ] %*% t(B) +
-  (eta_pred[id, ] * tcrossprod(scale(time), rep(1, k))) %*% t(B_t)
-Y_pred_oracle <- trueh_pred + X_pred[id, ] %*% t(B_z)
+trueh_pred <- eta_pred[id, ] %*% B[i,] +
+  (eta_pred[id, ] * tcrossprod(scale(time), rep(1, k))) %*% B_t[i,]
+Y_pred_oracle <- trueh_pred + X_pred[id, ] %*% B_z[i,]
 Y_pred <- Y_pred_oracle +
-  MASS::mvrnorm(n, rep(0, Q), diag(1, Q, Q))[id,] +
-  MASS::mvrnorm(n * T, rep(0, Q), diag(0.5, Q, Q))
+  rnorm(n, 0, sqrt(xi_sigma))[id] +
+  rnorm(N, 0, sqrt(E_sigma))
 
 # Make U matrix
-age = 1:T
+age = unique(scale(time))
 U				  = matrix(data=rep(0,T*2*n), nrow=T)
 U[,1]			= rep(1, T)
 U[,2]			= age
