@@ -11,7 +11,7 @@ M				  = 10 # Number of metals
 k         = 2 # Rank of covariance of metals
 # age 			= c(-5:5)
 T				  = 10 # Number of time points
-age       = 1:T
+age       = scale(1:T)
 N				  = n*T
 
 #############################
